@@ -5,22 +5,34 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon --exec ts-node src/index.ts",
-    "dev": "ts-node-dev --respawn src/index.ts"
+    "dev:bot": "ts-node-dev src/index.ts",
+    "dev:server": "ts-node-dev src/mpesaServer.ts",
+    "dev:all": "concurrently \"npm run dev:bot\" \"npm run dev:server\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@types/request": "^2.48.12",
     "axios": "^1.10.0",
-    "dotenv": "^17.0.1",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.1.0",
+    "express": "^5.1.0",
     "moment": "^2.30.1",
     "mongoose": "^8.16.1",
+    "ngrok": "^5.0.0-beta.2",
     "nodemon": "^3.1.10",
+    "request": "^2.88.2",
     "telegraf": "^4.16.3"
   },
   "devDependencies": {
+    "@types/body-parser": "^1.19.6",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
     "@types/node": "^24.0.10",
+    "concurrently": "^9.2.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.8.3"
   }

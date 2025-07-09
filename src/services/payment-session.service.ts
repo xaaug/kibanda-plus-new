@@ -1,3 +1,5 @@
+// src/services/payment-session.service.ts
+
 type Session = {
   chatId: number;
   phone: string;
@@ -6,7 +8,7 @@ type Session = {
   timeout: NodeJS.Timeout;
 };
 
-const sessions = new Map<number, Session>();
+export const sessions = new Map<number, Session>();
 
 export function createPaymentSession(
   chatId: number,
@@ -14,22 +16,25 @@ export function createPaymentSession(
   packageId: string,
   checkoutRequestId: string,
   onTimeout: () => void,
-  timeoutMs = 5 * 60 * 1000 // 5 minutes
+  timeoutMs = 5 * 60 * 1000
 ) {
-  clearPaymentSession(chatId); 
+  clearPaymentSession(chatId);
 
   const timeout = setTimeout(() => {
     onTimeout();
     sessions.delete(chatId);
   }, timeoutMs);
 
-  sessions.set(chatId, {
+  const session: Session = {
     chatId,
     phone,
     packageId,
     checkoutRequestId,
     timeout,
-  });
+  };
+
+  sessions.set(chatId, session);
+  console.log('🧾 Session created:', session);
 }
 
 export function clearPaymentSession(chatId: number) {
@@ -37,9 +42,17 @@ export function clearPaymentSession(chatId: number) {
   if (session) {
     clearTimeout(session.timeout);
     sessions.delete(chatId);
+    console.log(`🗑️ Session cleared for chatId ${chatId}`);
   }
 }
 
 export function getPaymentSession(chatId: number): Session | undefined {
   return sessions.get(chatId);
+}
+
+export function findSessionByCheckoutId(checkoutId: string): Session | undefined {
+  for (const [, session] of sessions.entries()) {
+    if (session.checkoutRequestId === checkoutId) return session;
+  }
+  return undefined;
 }

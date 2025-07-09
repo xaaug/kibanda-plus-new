@@ -2,7 +2,7 @@ export const subscriptionPackages = [
   {
     id: 'one-time',
     name: 'One-Time Access',
-    price: 10,
+    price: 1,
     description: 'Access 1 movie. Expires after download.',
     type: 'one-time',
     duration: null,
