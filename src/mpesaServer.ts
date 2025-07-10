@@ -10,6 +10,10 @@ export function startMpesaServer() {
   app.use(cors());
   app.use(express.json());
 
+    app.get('/', (req, res) => {
+      res.send('Mpesa Server!');
+    });
+
   app.use('/mpesa', mpesaRoutes);
 
   app.listen(env.PORT, () => {

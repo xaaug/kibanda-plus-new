@@ -59,6 +59,7 @@ export const stkPushCallback = async (req: any, res: any) => {
 
   try {
     const callback = req.body.Body.stkCallback;
+    console.log("Callback data", callback)
 
     if (!callback) {
       console.warn('⚠️ Missing callback data in request');
