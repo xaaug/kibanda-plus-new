@@ -1,5 +1,3 @@
-// src/services/payment-session.service.ts
-
 type Session = {
   chatId: number;
   phone: string;

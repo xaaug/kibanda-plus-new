@@ -2,9 +2,12 @@ import request from 'request';
 import { getTimestamp } from '../utils/timestamp.util';
 import { getEnv } from '../../../config/validateEnv';
 import { confirmPaymentDirect } from '../services/mpesaConfirm';
+import { bot } from '../../instance';
+import { subscriptionPackages } from '../../../config/packages';import { sessions } from '../../../services/payment-session.service';
 
-
-// Initializes the STK Push
+// ------------------------------
+// Initiate STK Push
+// ------------------------------
 export const initiateSTKPush = async (req: any, res: any) => {
   const { amount, phone, Order_ID } = req.body;
 
@@ -13,10 +16,12 @@ export const initiateSTKPush = async (req: any, res: any) => {
     getEnv('BUSINESS_SHORT_CODE') + getEnv('PASS_KEY') + timestamp
   ).toString('base64');
 
+  const baseUrl = getEnv('MPESA_BASE_URL');
   const stkCallbackUrl = `${getEnv('CALLBACK_URL')}/mpesa/stkPushCallback/${Order_ID}`;
-  console.log(`🌐 Callback URL set to: ${stkCallbackUrl}`);
+  const url = `${baseUrl}/mpesa/stkpush/v1/processrequest`;
 
-  const url = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest';
+  console.log(`🌐 Base URL: ${baseUrl}`);
+  console.log(`🌐 Callback URL set to: ${stkCallbackUrl}`);
 
   request.post(
     {
@@ -25,13 +30,13 @@ export const initiateSTKPush = async (req: any, res: any) => {
         Authorization: `Bearer ${req.safaricom_access_token}`,
       },
       json: {
-        BusinessShortCode: process.env.BUSINESS_SHORT_CODE,
+        BusinessShortCode: getEnv('BUSINESS_SHORT_CODE'),
         Password: password,
         Timestamp: timestamp,
         TransactionType: 'CustomerPayBillOnline',
         Amount: amount,
         PartyA: phone,
-        PartyB: process.env.BUSINESS_SHORT_CODE,
+        PartyB: getEnv('BUSINESS_SHORT_CODE'),
         PhoneNumber: phone,
         CallBackURL: stkCallbackUrl,
         AccountReference: 'Your App',
@@ -50,8 +55,9 @@ export const initiateSTKPush = async (req: any, res: any) => {
   );
 };
 
-// Checks the callback
-
+// ------------------------------
+// Handle Callback & Notify User
+// ------------------------------
 export const stkPushCallback = async (req: any, res: any) => {
   const { Order_ID } = req.params;
 
@@ -83,13 +89,33 @@ export const stkPushCallback = async (req: any, res: any) => {
 
     console.log('✅ Parsed M-Pesa Callback Data:', data);
 
+    // Confirm & Notify if Success
     if (callback.ResultCode === 0) {
       console.log('⏳ Auto-confirming payment...');
       const confirmation = await confirmPaymentDirect(callback.CheckoutRequestID);
       console.log('🔎 Payment confirmed:', confirmation);
-    }
 
-    // TODO: Save to DB
+      const session = findSessionByCheckoutId(callback.CheckoutRequestID);
+
+      if (session) {
+        const chatId = session.chatId;
+        const pkg = subscriptionPackages.find(p => p.id === session.packageId);
+        const pkgName = pkg?.name || 'your subscription';
+
+        try {
+          await bot.telegram.sendMessage(
+            chatId,
+            `✅ Payment received!\n🎁 You've successfully subscribed to *${pkgName}*. Enjoy!`,
+            { parse_mode: 'Markdown' }
+          );
+          console.log(`📩 User ${chatId} notified.`);
+        } catch (notifyErr) {
+          console.error('❌ Failed to send Telegram message:', notifyErr);
+        }
+      } else {
+        console.warn(`⚠️ No session found for CheckoutRequestID: ${callback.CheckoutRequestID}`);
+      }
+    }
 
     res.status(200).json({ success: true });
   } catch (error) {
@@ -98,14 +124,26 @@ export const stkPushCallback = async (req: any, res: any) => {
   }
 };
 
-// Payment Confirmation
+// ------------------------------
+// Utility: Find Session by CheckoutRequestID
+// ------------------------------
+function findSessionByCheckoutId(checkoutId: string) {
+  for (const [, session] of sessions.entries()) {
+    if (session.checkoutRequestId === checkoutId) return session;
+  }
+  return undefined;
+}
+
+// ------------------------------
+// Confirm Payment (manual hit)
+// ------------------------------
 export const confirmPayment = async (req: any, res: any) => {
   const timestamp = getTimestamp();
   const password = Buffer.from(
     getEnv('BUSINESS_SHORT_CODE') + getEnv('PASS_KEY') + timestamp
   ).toString('base64');
 
-  const url = 'https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query';
+  const url = `${getEnv('MPESA_BASE_URL')}/mpesa/stkpushquery/v1/query`;
 
   request.post(
     {
@@ -114,7 +152,7 @@ export const confirmPayment = async (req: any, res: any) => {
         Authorization: `Bearer ${req.safaricom_access_token}`,
       },
       json: {
-        BusinessShortCode: process.env.BUSINESS_SHORT_CODE,
+        BusinessShortCode: getEnv('BUSINESS_SHORT_CODE'),
         Password: password,
         Timestamp: timestamp,
         CheckoutRequestID: req.params.CheckoutRequestID,
