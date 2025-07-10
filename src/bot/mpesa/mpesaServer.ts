@@ -1,8 +1,8 @@
 // src/mpesaServer.ts
 import express from 'express';
 import cors from 'cors';
-import mpesaRoutes from './bot/mpesa/routes/stk.routes';
-import { env } from './config/env';
+import mpesaRoutes from './routes/stk.routes';
+import { env } from '../../config/env';
 
 export function startMpesaServer() {
   const app = express();

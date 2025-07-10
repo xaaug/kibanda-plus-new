@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import setupBot from './bot/index';
 import { env } from './config/env'; 
 import { bot } from './bot/instance';
-import { startMpesaServer } from './mpesaServer';
+import { startMpesaServer } from './bot/mpesa/mpesaServer';
 
 setupBot(bot);
 

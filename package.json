@@ -6,7 +6,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon --exec ts-node src/index.ts",
     "dev:bot": "ts-node-dev src/index.ts",
-    "dev:server": "ts-node-dev src/mpesaServer.ts",
+    "dev:server": "ts-node-dev src/mpesa/mpesaServer.ts",
     "dev:all": "concurrently \"npm run dev:bot\" \"npm run dev:server\""
   },
   "keywords": [],

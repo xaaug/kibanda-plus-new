@@ -1,6 +1,7 @@
 import request from 'request';
 import { getTimestamp } from '../utils/timestamp.util';
 import { getEnv } from '../../../config/validateEnv';
+import { confirmPaymentDirect } from '../services/mpesaConfirm';
 
 
 // Initializes the STK Push
@@ -59,7 +60,6 @@ export const stkPushCallback = async (req: any, res: any) => {
 
   try {
     const callback = req.body.Body.stkCallback;
-    console.log("Callback data", callback)
 
     if (!callback) {
       console.warn('⚠️ Missing callback data in request');
@@ -83,7 +83,13 @@ export const stkPushCallback = async (req: any, res: any) => {
 
     console.log('✅ Parsed M-Pesa Callback Data:', data);
 
-    // TODO: Save to MongoDB 
+    if (callback.ResultCode === 0) {
+      console.log('⏳ Auto-confirming payment...');
+      const confirmation = await confirmPaymentDirect(callback.CheckoutRequestID);
+      console.log('🔎 Payment confirmed:', confirmation);
+    }
+
+    // TODO: Save to DB
 
     res.status(200).json({ success: true });
   } catch (error) {
