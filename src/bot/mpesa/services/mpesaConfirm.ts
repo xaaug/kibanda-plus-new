@@ -2,6 +2,18 @@ import request from 'request';
 import { getTimestamp } from '../utils/timestamp.util';
 import { getEnv } from '../../../config/validateEnv';
 
+/**
+ * Directly confirms a payment with the M-Pesa API by its CheckoutRequestID.
+ *
+ * This function performs a self-contained operation to query the status of an STK push.
+ * It first obtains a new access token from Safaricom and then immediately uses it
+ * to make a `stkpushquery` request. This is useful for auto-confirming payments
+ * from the callback without needing to pass an access token around.
+ *
+ * @param {string} CheckoutRequestID - The unique ID of the checkout transaction to be queried.
+ * @returns {Promise<any>} A promise that resolves with the body of the STK push query response
+ * from the Safaricom API, or rejects with an error.
+ */
 export const confirmPaymentDirect = (CheckoutRequestID: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     const timestamp = getTimestamp();

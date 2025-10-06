@@ -1,3 +1,16 @@
+/**
+ * An array of subscription package objects available for users.
+ *
+ * Each object in the array represents a subscription package with its details.
+ *
+ * @property {string} id - A unique identifier for the package.
+ * @property {string} name - The display name of the package.
+ * @property {number} price - The price of the package.
+ * @property {string} description - A short description of the package.
+ * @property {string} type - The type of the package (e.g., 'one-time', 'weekly', 'monthly').
+ * @property {number | null} duration - The duration of the subscription in milliseconds. `null` for one-time packages.
+ * @property {number | null} contentLimit - The number of movies a user can access. `null` for unlimited access.
+ */
 export const subscriptionPackages = [
   {
     id: 'one-time',
