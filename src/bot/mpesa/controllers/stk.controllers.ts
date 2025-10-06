@@ -5,9 +5,24 @@ import { confirmPaymentDirect } from '../services/mpesaConfirm';
 import { bot } from '../../instance';
 import { subscriptionPackages } from '../../../config/packages';import { sessions } from '../../../services/payment-session.service';
 
-// ------------------------------
-// Initiate STK Push
-// ------------------------------
+import request from 'request';
+import { getTimestamp } from '../utils/timestamp.util';
+import { getEnv } from '../../../config/validateEnv';
+import { confirmPaymentDirect } from '../services/mpesaConfirm';
+import { bot } from '../../instance';
+import { subscriptionPackages } from '../../../config/packages';
+import { sessions } from '../../../services/payment-session.service';
+
+/**
+ * Initiates an STK push request to the Safaricom API.
+ *
+ * This function constructs the request payload for an STK push, including the
+ * business shortcode, password, timestamp, and transaction details. It then
+ * sends the request to the M-Pesa API.
+ *
+ * @param {any} req - The Express request object. Expects `amount`, `phone`, and `Order_ID` in the body.
+ * @param {any} res - The Express response object.
+ */
 export const initiateSTKPush = async (req: any, res: any) => {
   const { amount, phone, Order_ID } = req.body;
 
@@ -55,9 +70,16 @@ export const initiateSTKPush = async (req: any, res: any) => {
   );
 };
 
-// ------------------------------
-// Handle Callback & Notify User
-// ------------------------------
+/**
+ * Handles the STK push callback from the M-Pesa API.
+ *
+ * This function is triggered when Safaricom sends a callback to the registered URL.
+ * It parses the callback data, and if the payment was successful, it confirms the
+ * payment, finds the corresponding user session, and sends a notification via Telegram.
+ *
+ * @param {any} req - The Express request object, containing the callback payload.
+ * @param {any} res - The Express response object.
+ */
 export const stkPushCallback = async (req: any, res: any) => {
   const { Order_ID } = req.params;
 
@@ -124,9 +146,15 @@ export const stkPushCallback = async (req: any, res: any) => {
   }
 };
 
-// ------------------------------
-// Utility: Find Session by CheckoutRequestID
-// ------------------------------
+/**
+ * Finds a payment session by its CheckoutRequestID.
+ *
+ * This utility function iterates through the active sessions to find the one
+ * matching the provided checkout ID.
+ *
+ * @param {string} checkoutId - The CheckoutRequestID to search for.
+ * @returns {object | undefined} The session object if found, otherwise undefined.
+ */
 function findSessionByCheckoutId(checkoutId: string) {
   for (const [, session] of sessions.entries()) {
     if (session.checkoutRequestId === checkoutId) return session;
@@ -134,9 +162,15 @@ function findSessionByCheckoutId(checkoutId: string) {
   return undefined;
 }
 
-// ------------------------------
-// Confirm Payment (manual hit)
-// ------------------------------
+/**
+ * Manually confirms a payment by querying the M-Pesa API.
+ *
+ * This function is used to check the status of a transaction by its CheckoutRequestID.
+ * It's typically used for manual verification or debugging.
+ *
+ * @param {any} req - The Express request object. Expects `CheckoutRequestID` in the params.
+ * @param {any} res - The Express response object.
+ */
 export const confirmPayment = async (req: any, res: any) => {
   const timestamp = getTimestamp();
   const password = Buffer.from(
