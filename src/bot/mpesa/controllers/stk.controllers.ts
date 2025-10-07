@@ -3,13 +3,6 @@ import { getTimestamp } from '../utils/timestamp.util';
 import { getEnv } from '../../../config/validateEnv';
 import { confirmPaymentDirect } from '../services/mpesaConfirm';
 import { bot } from '../../instance';
-import { subscriptionPackages } from '../../../config/packages';import { sessions } from '../../../services/payment-session.service';
-
-import request from 'request';
-import { getTimestamp } from '../utils/timestamp.util';
-import { getEnv } from '../../../config/validateEnv';
-import { confirmPaymentDirect } from '../services/mpesaConfirm';
-import { bot } from '../../instance';
 import { subscriptionPackages } from '../../../config/packages';
 import { sessions } from '../../../services/payment-session.service';
 
